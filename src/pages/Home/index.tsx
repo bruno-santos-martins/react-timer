@@ -1,23 +1,39 @@
 import { Play } from "phosphor-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as zod from 'zod';
+
 import { CountdownContainer, FormContainer, HomeContainer, MinutesAmountInput, Separator, StartCountdownButton, TaskInput } from "./styles";
-import { useState } from "react";
-//import { useForm } from "react-hook-form";
+
+const newCycleFormValidationSchema = zod.object({
+  task: zod.string().min(1, 'Informe a Tarefa'),
+  minutesAmount: zod.number()
+  .min(5,'O mínimo do intervalo precisa ser de 5 min')
+  .max(60,'o máximo do intervalo precisa ser de 60 minutos'),
+})
 
 export function Home() {
-
-  const [ task, setTask] = useState('');
-
+  const { register , handleSubmit, watch } = useForm({
+    resolver: zodResolver(newCycleFormValidationSchema),
+  });
+  
+  function handle(data: any){
+    console.log(data);
+  }
+  
+  const task = watch('task');
+  const isSubmitDisabled = !task;
 
   return (
     <HomeContainer>
-      <form action="">
+      <form onSubmit={handleSubmit(handle)} action="">
         <FormContainer>
           <label htmlFor="task">Vou trabalhar em</label>
-          <TaskInput id="task" 
+          <TaskInput 
+            id="task" 
             placeholder="digite o nome do projeto" 
             list="task-suggestion" 
-            onChange={(e) => setTask(e.target.value)}
-            value={task}
+            {...register('task')}
           />
 
           <datalist id="task-suggestion">
@@ -33,6 +49,7 @@ export function Home() {
             step={5}
             min={0}
             max={60}
+            {...register('minutesAmount', {valueAsNumber: true})}
           />
 
           <span>minutes.</span>
@@ -46,7 +63,7 @@ export function Home() {
           <span>0</span>
         </CountdownContainer>
 
-        <StartCountdownButton type="submit" disabled={!task}> <Play size={24}/>Começar</StartCountdownButton>
+        <StartCountdownButton type="submit" disabled={isSubmitDisabled}> <Play size={24}/>Começar</StartCountdownButton>
       </form>
     </HomeContainer>
   )
